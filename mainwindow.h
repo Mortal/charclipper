@@ -17,6 +17,32 @@ namespace Ui {
 class MainWindow;
 }
 
+struct SearchResult {
+    QString literal;
+    QString description;
+};
+
+inline std::vector<SearchResult> search(QString input) {
+    return {
+        {QString::fromUtf8("²"), "squared"},
+        {QString::fromUtf8("ᵀ"), "transpose"},
+        {QString::fromUtf8("σ"), "small sigma"},
+        {QString::fromUtf8("θ"), "small theta"},
+        {QString::fromUtf8("∈"), "in / member of"},
+        {QString::fromUtf8("ⁿ"), "nth power"},
+        {input, "copy input"},
+    };
+}
+
+struct CopyOnClick {
+    QString text;
+
+    void operator()(bool /*checked*/ = false) {
+        QClipboard * c = QApplication::clipboard();
+        c->setText(text);
+    }
+};
+
 class AppMenu : public QObject {
     Q_OBJECT
 
@@ -40,13 +66,16 @@ public:
             this, &AppMenu::dummyActionClick);
         QApplication * app = static_cast<QApplication *>(
             QCoreApplication::instance());
-        connect(app, &QApplication::focusChanged,
-            [&] (QWidget * old, QWidget * now) {
-                if (now == &searchWidget) {
-                    menu.setActiveAction(&searchAction);
-                }
+        // connect(app, &QApplication::focusChanged,
+        //     [&] (QWidget * /*old*/, QWidget * now) {
+        //         if (now == &searchWidget) {
+        //             menu.setActiveAction(&searchAction);
+        //         }
+        //     });
+        connect(&menu, &QMenu::aboutToShow,
+            [&] () {
+                searchWidget.setFocus();
             });
-
     }
 
     QMenu * get() { return &menu; }
@@ -57,6 +86,21 @@ public slots:
             dummyAction.setText(T_emptySearch);
         else
             dummyAction.setText(text);
+        for (auto & act : searches) {
+            menu.removeAction(act.get());
+        }
+        searches.resize(0);
+        auto results = search(text);
+        for (auto & res : results) {
+            searches.emplace_back(new QAction(res.description, nullptr));
+            menu.addAction(searches.back().get());
+            QObject::connect(
+                searches.back().get(), &QAction::triggered,
+                CopyOnClick {res.literal});
+        }
+        if (searches.size() > 0) {
+            menu.setActiveAction(searches.front().get());
+        }
     }
 
     void dummyActionClick(bool /*checked*/) {
