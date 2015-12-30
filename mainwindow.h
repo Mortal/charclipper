@@ -38,6 +38,15 @@ public:
         QObject::connect(
             &dummyAction, &QAction::triggered,
             this, &AppMenu::dummyActionClick);
+        QApplication * app = static_cast<QApplication *>(
+            QCoreApplication::instance());
+        connect(app, &QApplication::focusChanged,
+            [&] (QWidget * old, QWidget * now) {
+                if (now == &searchWidget) {
+                    menu.setActiveAction(&searchAction);
+                }
+            });
+
     }
 
     QMenu * get() { return &menu; }
