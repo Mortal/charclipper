@@ -2,6 +2,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QApplication>
+#include <QClipboard>
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QMenu>
@@ -15,20 +17,43 @@ namespace Ui {
 class MainWindow;
 }
 
-class AppMenu {
+class AppMenu : public QObject {
+    Q_OBJECT
+
+    static constexpr const char * T_emptySearch = "Search...";
+
 public:
     AppMenu()
         : menu(nullptr)
-        , dummyAction("menu item", nullptr)
+        , dummyAction(T_emptySearch, nullptr)
         , searchWidget(&menu)
         , searchAction(&menu)
     {
         searchAction.setDefaultWidget(&searchWidget);
         menu.addAction(&dummyAction);
         menu.addAction(&searchAction);
+        QObject::connect(
+            &searchWidget, &QLineEdit::textChanged,
+            this, &AppMenu::searchChanged);
+        QObject::connect(
+            &dummyAction, &QAction::triggered,
+            this, &AppMenu::dummyActionClick);
     }
 
     QMenu * get() { return &menu; }
+
+public slots:
+    void searchChanged(const QString & text) {
+        if (text.size() == 0)
+            dummyAction.setText(T_emptySearch);
+        else
+            dummyAction.setText(text);
+    }
+
+    void dummyActionClick(bool /*checked*/) {
+        QClipboard * c = QApplication::clipboard();
+        c->setText(searchWidget.text());
+    }
 
 private:
     QMenu menu;
