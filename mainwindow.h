@@ -1,3 +1,4 @@
+// vim:set sw=4 et:
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 

@@ -1,3 +1,4 @@
+// vim:set sw=4 et:
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
