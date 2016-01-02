@@ -58,28 +58,60 @@ public:
     kmp(QString p)
         : pattern(std::move(p))
     {
-        fail.resize(pattern.size() + 1);
-        fail[0] = -1;
-        int j = -1;
-        for (int i = 1; i <= pattern.size(); ++i) {
-            while (j >= 0 && pattern[j] != pattern[i-1]) j = fail[j];
-            fail[i] = ++j;
+        if (pattern.size() > 0) {
+            fail.resize(pattern.size() + 1);
+            fail[0] = -1;
+            int j = -1;
+            // fail[i] = length of longest suffix of p[:i] that is a prefix of p[:i]
+            for (int i = 1; i <= pattern.size(); ++i) {
+                while (j >= 0 && pattern[j] != pattern[i-1]) j = fail[j];
+                fail[i] = ++j;
+            }
         }
         if (!match(pattern)) throw std::runtime_error("kmp does not match pattern");
     }
 
-    bool match(const QString & text) {
+    int match_end(const QString & text, int start=0) const {
+        if (pattern.size() == 0) return start;
         int k = 0;
-        for (int i = 0; i < text.size(); ++i) {
+        for (int i = start; i < text.size(); ++i) {
             while (k >= 0 && pattern[k] != text[i]) k = fail[k];
-            if (++k >= pattern.size()) return true;
+            if (++k >= pattern.size()) return i + 1;
         }
-        return false;
+        return -1;
+    }
+
+    bool match(const QString & text) const {
+        return match_end(text) > -1;
     }
 
 private:
     QString pattern;
     std::vector<int> fail;
+};
+
+class multi_kmp {
+public:
+    multi_kmp(QString p, QChar sep) {
+        for (auto s : p.split(sep)) {
+            if (s.size() > 0) matchers.emplace_back(s);
+        }
+    }
+
+    int match_end(const QString & text, int start=0) const {
+        for (const kmp & m : matchers) {
+            start = m.match_end(text, start);
+            if (start == -1) return -1;
+        }
+        return start;
+    }
+
+    bool match(const QString & text) const {
+        return match_end(text) > -1;
+    }
+
+private:
+    std::vector<kmp> matchers;
 };
 
 class ucd_impl {
@@ -94,7 +126,7 @@ public:
     }
 
     unicode_character search(const QString & query) {
-        kmp q(query);
+        multi_kmp q(query, ' ');
         const char * i = bof;
         while (i < eof) {
             ucd_parser p(i);
