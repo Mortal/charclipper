@@ -126,6 +126,7 @@ public:
     }
 
     unicode_character search(const QString & query) {
+        // TODO Implement QFutureInterface
         multi_kmp q(query, ' ');
         const char * i = bof;
         while (i < eof) {
