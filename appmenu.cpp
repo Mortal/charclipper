@@ -1,7 +1,7 @@
 // vim:set sw=4 et:
 #include "appmenu.h"
 
-std::vector<SearchResult> search(QString input) {
+std::vector<SearchResult> search(unicode_character_database & ucd, QString input) {
     std::vector<SearchResult> res = {
         {QString::fromUtf8("²"), "squared"},
         {QString::fromUtf8("ᵀ"), "transpose"},
@@ -14,5 +14,13 @@ std::vector<SearchResult> search(QString input) {
         {QString::fromUtf8("∑"), "summation"},
         {input, "copy input"},
     };
+    try {
+        unicode_character uc = ucd.search(input);
+        if (uc.codepoint > 0) {
+            res.push_back({QString::fromUcs4(&uc.codepoint, 1), uc.name});
+        }
+    } catch (const std::exception & e) {
+        res.push_back({"", e.what()});
+    }
     return res;
 }

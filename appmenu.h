@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <vector>
+#include <iostream>
 
 
 #include <QApplication>
@@ -17,13 +18,15 @@
 #include <QFuture>
 #include <QtConcurrent>
 
+#include "ucd.h"
+
 
 struct SearchResult {
     QString literal;
     QString description;
 };
 
-std::vector<SearchResult> search(QString input);
+std::vector<SearchResult> search(unicode_character_database & ucd, QString input);
 
 struct CopyOnClick {
     QString text;
@@ -116,6 +119,7 @@ private:
     QLineEdit searchWidget;
     QWidgetAction searchAction;
     std::vector<std::unique_ptr<QAction> > searches;
+    unicode_character_database ucd;
     QFuture<std::vector<SearchResult> > searchFuture;
     QFutureWatcher<std::vector<SearchResult> > searchFutureWatcher;
 };
