@@ -1,3 +1,4 @@
+// vim:set sw=4 et:
 #ifndef APPMENU_H
 #define APPMENU_H
 

@@ -1,3 +1,4 @@
+// vim:set sw=4 et:
 #include "appmenu.h"
 
 std::vector<SearchResult> search(QString input) {
