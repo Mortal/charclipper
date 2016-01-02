@@ -14,6 +14,8 @@
 #include <QMenu>
 #include <QSystemTrayIcon>
 #include <QWidgetAction>
+#include <QFuture>
+#include <QtConcurrent>
 
 
 struct SearchResult {
@@ -65,6 +67,8 @@ public:
             [&] () {
                 searchWidget.setFocus();
             });
+        connect(&searchFutureWatcher, &QFutureWatcher<std::vector<SearchResult> >::finished,
+                this, &AppMenu::searchFinished);
     }
 
     virtual ~AppMenu() {}
@@ -81,8 +85,15 @@ public slots:
             menu.removeAction(act.get());
         }
         searches.resize(0);
-        auto results = search(text);
-        for (auto & res : results) {
+        searchFuture.cancel();
+        searchFuture = QtConcurrent::run([this, text] () {
+            return search(ucd, text);});
+        searchFutureWatcher.setFuture(searchFuture);
+    }
+
+    void searchFinished() {
+        if (searchFuture.isCanceled()) return;
+        for (auto & res : searchFuture.result()) {
             searches.emplace_back(new QAction(res.description, nullptr));
             menu.addAction(searches.back().get());
             QObject::connect(
@@ -105,6 +116,8 @@ private:
     QLineEdit searchWidget;
     QWidgetAction searchAction;
     std::vector<std::unique_ptr<QAction> > searches;
+    QFuture<std::vector<SearchResult> > searchFuture;
+    QFutureWatcher<std::vector<SearchResult> > searchFutureWatcher;
 };
 
 #endif // APPMENU_H
