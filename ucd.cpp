@@ -65,7 +65,7 @@ public:
             while (j >= 0 && pattern[j] != pattern[i-1]) j = fail[j];
             fail[i] = ++j;
         }
-        if (!match(p)) throw std::runtime_error("kmp does not match pattern");
+        if (!match(pattern)) throw std::runtime_error("kmp does not match pattern");
     }
 
     bool match(const QString & text) {
