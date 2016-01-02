@@ -2,7 +2,7 @@
 #include "appmenu.h"
 
 std::vector<SearchResult> search(QString input) {
-    return {
+    std::vector<SearchResult> res = {
         {QString::fromUtf8("²"), "squared"},
         {QString::fromUtf8("ᵀ"), "transpose"},
         {QString::fromUtf8("σ"), "small sigma"},
@@ -14,4 +14,5 @@ std::vector<SearchResult> search(QString input) {
         {QString::fromUtf8("∑"), "summation"},
         {input, "copy input"},
     };
+    return res;
 }
