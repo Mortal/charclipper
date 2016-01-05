@@ -125,17 +125,26 @@ public:
         eof = bof + fp.size();
     }
 
-    unicode_character search(const QString & query) {
+    template <typename F>
+    void find_all(const QString & query, F f) {
         // TODO Implement QFutureInterface
         multi_kmp q(query, ' ');
         const char * i = bof;
         while (i < eof) {
             ucd_parser p(i);
             if (q.match(p.name()))
-                return {p.codepoint(), p.name()};
+                f(unicode_character {p.codepoint(), p.name()});
             i = p.next();
         }
-        return {0, ""};
+    }
+
+    unicode_character search(const QString & query) {
+        unicode_character best {0, ""};
+        find_all(query, [&] (unicode_character match) {
+            if (best.name.size() == 0)
+                best = std::move(match);
+        });
+        return best;
     }
 
 private:
