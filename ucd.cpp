@@ -55,6 +55,10 @@ if (++k >= m) k=fail[k],++cnt; //match at t[i-m+1 .. i]
 
 class kmp {
 public:
+    static bool eq(QChar x, QChar y) {
+        return x == y;
+    }
+
     kmp(QString p)
         : pattern(std::move(p))
     {
@@ -64,7 +68,7 @@ public:
             int j = -1;
             // fail[i] = length of longest suffix of p[:i] that is a prefix of p[:i]
             for (int i = 1; i <= pattern.size(); ++i) {
-                while (j >= 0 && pattern[j] != pattern[i-1]) j = fail[j];
+                while (j >= 0 && !eq(pattern[j], pattern[i-1])) j = fail[j];
                 fail[i] = ++j;
             }
         }
@@ -75,7 +79,7 @@ public:
         if (pattern.size() == 0) return start;
         int k = 0;
         for (int i = start; i < text.size(); ++i) {
-            while (k >= 0 && pattern[k] != text[i]) k = fail[k];
+            while (k >= 0 && !eq(pattern[k], text[i])) k = fail[k];
             if (++k >= pattern.size()) return i + 1;
         }
         return -1;
