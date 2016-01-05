@@ -141,7 +141,7 @@ public:
     unicode_character search(const QString & query) {
         unicode_character best {0, ""};
         find_all(query, [&] (unicode_character match) {
-            if (best.name.size() == 0)
+            if (best.name.size() == 0 || match.name.size() < best.name.size())
                 best = std::move(match);
         });
         return best;
