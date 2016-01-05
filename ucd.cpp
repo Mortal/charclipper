@@ -56,7 +56,7 @@ if (++k >= m) k=fail[k],++cnt; //match at t[i-m+1 .. i]
 class kmp {
 public:
     static bool eq(QChar x, QChar y) {
-        return x == y;
+        return x.toCaseFolded() == y.toCaseFolded();
     }
 
     kmp(QString p)
