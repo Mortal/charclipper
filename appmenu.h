@@ -46,14 +46,14 @@ public:
     AppMenu()
         : menu(nullptr)
         , dummyAction(T_emptySearch, nullptr)
-        , searchWidget(&menu)
-        , searchAction(&menu)
+        , searchAction(nullptr)
     {
-        searchAction.setDefaultWidget(&searchWidget);
+        searchWidget = new QLineEdit(nullptr);
+        searchAction.setDefaultWidget(searchWidget);
         menu.addAction(&dummyAction);
         menu.addAction(&searchAction);
         QObject::connect(
-            &searchWidget, &QLineEdit::textChanged,
+            searchWidget, &QLineEdit::textChanged,
             this, &AppMenu::searchChanged);
         QObject::connect(
             &dummyAction, &QAction::triggered,
@@ -62,13 +62,13 @@ public:
             QCoreApplication::instance());
         // connect(app, &QApplication::focusChanged,
         //     [&] (QWidget * /*old*/, QWidget * now) {
-        //         if (now == &searchWidget) {
+        //         if (now == searchWidget) {
         //             menu.setActiveAction(&searchAction);
         //         }
         //     });
         connect(&menu, &QMenu::aboutToShow,
             [&] () {
-                searchWidget.setFocus();
+                searchWidget->setFocus();
             });
         connect(&searchFutureWatcher, &QFutureWatcher<std::vector<SearchResult> >::finished,
                 this, &AppMenu::searchFinished);
@@ -110,14 +110,14 @@ public slots:
 
     void dummyActionClick(bool /*checked*/) {
         QClipboard * c = QApplication::clipboard();
-        c->setText(searchWidget.text());
+        c->setText(searchWidget->text());
     }
 
 private:
     QMenu menu;
     QAction dummyAction;
-    QLineEdit searchWidget;
     QWidgetAction searchAction;
+    QLineEdit * searchWidget; // owned by searchAction
     std::vector<std::unique_ptr<QAction> > searches;
     unicode_character_database ucd;
     QFuture<std::vector<SearchResult> > searchFuture;
